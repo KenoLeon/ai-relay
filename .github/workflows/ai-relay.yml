@@ -1,0 +1,27 @@
+name: AI Relay
+
+on:
+  push:
+    branches: [relay-data]
+    paths: [relay_result.json]
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: relay-data
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - run: pip install anthropic
+
+      - name: Analyze and respond
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python _relay_analyze.py
