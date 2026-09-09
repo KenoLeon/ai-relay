@@ -3,7 +3,7 @@ import json
 import os
 import subprocess
 
-import anthropic
+import google.generativeai as genai
 
 
 def main():
@@ -12,19 +12,13 @@ def main():
 
     request_id = data.pop("_relay_request_id", "unknown")
 
-    client = anthropic.Anthropic()
-    msg = client.messages.create(
-        model="claude-haiku-4-5-20251001",
-        max_tokens=1024,
-        messages=[{
-            "role": "user",
-            "content": (
-                "You are an ML experiment assistant. "
-                "Analyze this training result and give a brief, actionable observation "
-                "(2-4 sentences). Focus on what the numbers suggest and one concrete next step.\n\n"
-                f"Result:\n{json.dumps(data, indent=2)}"
-            ),
-        }],
+    genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+    model = genai.GenerativeModel("gemini-2.0-flash")
+    result = model.generate_content(
+        "You are an ML experiment assistant. "
+        "Analyze this training result and give a brief, actionable observation "
+        "(2-4 sentences). Focus on what the numbers suggest and one concrete next step.\n\n"
+        f"Result:\n{json.dumps(data, indent=2)}"
     )
 
     now = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -32,7 +26,7 @@ def main():
         f"<!-- request_id: {request_id} -->\n"
         f"# AI Relay Response\n\n"
         f"**{now}**\n\n"
-        f"{msg.content[0].text}\n"
+        f"{result.text}\n"
     )
 
     with open("relay_response.md", "w") as f:
