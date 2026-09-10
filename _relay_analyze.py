@@ -3,7 +3,7 @@ import json
 import os
 import subprocess
 
-import google.generativeai as genai
+from google import genai
 
 
 def main():
@@ -12,13 +12,15 @@ def main():
 
     request_id = data.pop("_relay_request_id", "unknown")
 
-    genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-    model = genai.GenerativeModel("gemini-2.0-flash")
-    result = model.generate_content(
-        "You are an ML experiment assistant. "
-        "Analyze this training result and give a brief, actionable observation "
-        "(2-4 sentences). Focus on what the numbers suggest and one concrete next step.\n\n"
-        f"Result:\n{json.dumps(data, indent=2)}"
+    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+    result = client.models.generate_content(
+        model="gemini-2.0-flash-lite",
+        contents=(
+            "You are an ML experiment assistant. "
+            "Analyze this training result and give a brief, actionable observation "
+            "(2-4 sentences). Focus on what the numbers suggest and one concrete next step.\n\n"
+            f"Result:\n{json.dumps(data, indent=2)}"
+        ),
     )
 
     now = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
