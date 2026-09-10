@@ -1,9 +1,30 @@
+import base64
 import datetime
 import json
 import os
-import subprocess
+import requests
 
 from google import genai
+
+
+_GITHUB_API = "https://api.github.com"
+
+
+def _gh_put(token, repo, branch, path, content, message):
+    hdrs = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    encoded = base64.b64encode(content.encode()).decode()
+    url = f"{_GITHUB_API}/repos/{repo}/contents/{path}"
+    r = requests.get(url, headers=hdrs, params={"ref": branch})
+    sha = r.json().get("sha") if r.status_code == 200 else None
+    body = {"message": message, "content": encoded, "branch": branch}
+    if sha:
+        body["sha"] = sha
+    r = requests.put(url, headers=hdrs, json=body)
+    r.raise_for_status()
 
 
 def main():
@@ -31,14 +52,12 @@ def main():
         f"{result.text}\n"
     )
 
-    with open("relay_response.md", "w") as f:
-        f.write(response)
+    token = os.environ["GITHUB_TOKEN"]
+    repo = os.environ["RELAY_REPO"]
+    branch = os.environ.get("RELAY_BRANCH", "relay-data")
 
-    subprocess.run(["git", "config", "user.email", "relay-bot@github-actions"], check=True)
-    subprocess.run(["git", "config", "user.name", "AI Relay"], check=True)
-    subprocess.run(["git", "add", "relay_response.md"], check=True)
-    subprocess.run(["git", "commit", "-m", f"relay: response for {request_id}"], check=True)
-    subprocess.run(["git", "push"], check=True)
+    _gh_put(token, repo, branch, "relay_response.md", response,
+            f"relay: response for {request_id}")
 
 
 if __name__ == "__main__":

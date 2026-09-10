@@ -13,20 +13,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: relay-data
+          ref: main
 
-      - name: Get latest analysis script from main
+      - name: Fetch relay data from relay-data branch
         run: |
-          git fetch origin main
-          git checkout origin/main -- _relay_analyze.py
+          git fetch origin relay-data
+          git checkout origin/relay-data -- relay_result.json
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - run: pip install google-genai
+      - run: pip install google-genai requests
 
       - name: Analyze and respond
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELAY_REPO: ${{ github.repository }}
+          RELAY_BRANCH: relay-data
         run: python _relay_analyze.py
