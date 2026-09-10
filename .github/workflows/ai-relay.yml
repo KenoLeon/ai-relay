@@ -15,6 +15,11 @@ jobs:
         with:
           ref: relay-data
 
+      - name: Get latest analysis script from main
+        run: |
+          git fetch origin main
+          git checkout origin/main -- _relay_analyze.py
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"

@@ -14,7 +14,7 @@ def main():
 
     client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
     result = client.models.generate_content(
-        model="gemini-2.0-flash-lite",
+        model="gemini-2.5-flash",
         contents=(
             "You are an ML experiment assistant. "
             "Analyze this training result and give a brief, actionable observation "
