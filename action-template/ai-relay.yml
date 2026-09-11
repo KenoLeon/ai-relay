@@ -1,0 +1,35 @@
+name: AI Relay
+
+on:
+  push:
+    branches: [relay-data]
+    paths: [relay_result.json]
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Fetch relay data from relay-data branch
+        run: |
+          git fetch origin relay-data
+          git checkout origin/relay-data -- relay_result.json
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - run: pip install google-genai requests
+
+      - name: Analyze and respond
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELAY_REPO: ${{ github.repository }}
+          RELAY_BRANCH: relay-data
+        run: python _relay_analyze.py

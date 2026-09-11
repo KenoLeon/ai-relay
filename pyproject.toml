@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "colab-relay"
+version = "0.1.0"
+description = "Push experiment results from Colab to GitHub, get AI analysis back"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+keywords = ["colab", "machine-learning", "experiment-tracking", "github-actions"]
+dependencies = [
+    "requests>=2.28",
+]
+
+[project.urls]
+Homepage = "https://github.com/KenoLeon/ai-relay"
+Repository = "https://github.com/KenoLeon/ai-relay"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/colab_relay"]
