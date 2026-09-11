@@ -32,16 +32,19 @@ def main():
         data = json.load(f)
 
     request_id = data.pop("_relay_request_id", "unknown")
+    custom_prompt = data.pop("_relay_prompt", None)
+
+    default_prompt = (
+        "You are an ML experiment assistant. "
+        "Analyze this training result and give a brief, actionable observation "
+        "(2-4 sentences). Focus on what the numbers suggest and one concrete next step."
+    )
+    system_prompt = custom_prompt if custom_prompt else default_prompt
 
     client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
     result = client.models.generate_content(
         model="gemini-3.6-flash",
-        contents=(
-            "You are an ML experiment assistant. "
-            "Analyze this training result and give a brief, actionable observation "
-            "(2-4 sentences). Focus on what the numbers suggest and one concrete next step.\n\n"
-            f"Result:\n{json.dumps(data, indent=2)}"
-        ),
+        contents=f"{system_prompt}\n\nResult:\n{json.dumps(data, indent=2)}",
     )
 
     now = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")

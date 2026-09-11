@@ -57,12 +57,14 @@ def _put_file(token, repo, branch, path, content, message):
     r.raise_for_status()
 
 
-def push(data: dict) -> str:
+def push(data: dict, prompt: str = None) -> str:
     """Commit data as relay_result.json on the relay branch. Returns the request_id."""
     token, repo, branch = _cfg()
     _ensure_branch(token, repo, branch)
     request_id = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
     payload = {"_relay_request_id": request_id, **data}
+    if prompt is not None:
+        payload["_relay_prompt"] = prompt
     _put_file(
         token, repo, branch,
         "relay_result.json",
@@ -83,13 +85,17 @@ def pull(request_id: str, timeout: int = 300, poll: int = 10) -> str:
     push_dt = datetime.datetime.strptime(request_id, "%Y%m%dT%H%M%SZ")
     push_iso = push_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    deadline = time.time() + timeout
+    start = time.time()
+    deadline = start + timeout
     while time.time() < deadline:
         r = requests.get(response_url, headers=hdrs, params={"ref": branch})
         if r.status_code == 200:
             text = base64.b64decode(r.json()["content"]).decode()
             if f"request_id: {request_id}" in text:
-                return text
+                elapsed = int(time.time() - start)
+                print(f"[relay] response received ({elapsed}s)")
+                lines = [l for l in text.splitlines() if not l.startswith("<!-- request_id:")]
+                return "\n".join(lines).strip()
 
         r = requests.get(runs_url, headers=hdrs, params={
             "event": "push",
@@ -103,8 +109,8 @@ def pull(request_id: str, timeout: int = 300, poll: int = 10) -> str:
                         f"[relay] Action failed — check: {run.get('html_url')}"
                     )
 
-        remaining = int(deadline - time.time())
-        print(f"[relay] waiting… ({remaining}s left)")
+        elapsed = int(time.time() - start)
+        print(f"[relay] waiting… ({elapsed}s elapsed)")
         time.sleep(poll)
 
     raise TimeoutError(f"[relay] no response for {request_id} after {timeout}s")

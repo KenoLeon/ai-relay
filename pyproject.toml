@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "colab-relay"
-version = "0.1.0"
+version = "0.2.0"
 description = "Push experiment results from Colab to GitHub, get AI analysis back"
 readme = "README.md"
 requires-python = ">=3.8"
