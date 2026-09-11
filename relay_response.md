@@ -1,8 +1,10 @@
-<!-- request_id: 20260911T020737Z -->
+<!-- request_id: 20260911T021023Z -->
 # AI Relay Response
 
-**2026-09-11T02:08:33Z**
+**2026-09-11T02:10:43Z**
 
-The model shows a strong start after just one epoch, achieving 83% accuracy with a reasonable gap between training loss (0.42) and validation loss (0.51). However, a single epoch is insufficient to judge model convergence, underfitting, or potential overfitting. 
+Based on the training progress (89% accuracy by epoch 5), the model learns quickly, which increases the risk of memorizing the training data as epochs increase.
 
-**Next step:** Continue training for another 10–15 epochs while tracking validation metrics to establish clear trendlines and evaluate overall stability.
+**Suggested Technique: Dropout**
+
+* **Why:** Randomly deactivating a percentage of neurons during training prevents the network from relying too heavily on specific node pathways, forcing it to learn more robust, generalized features.
